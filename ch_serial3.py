@@ -5,6 +5,7 @@ import codecs
 import time
 import serial 
 import sys
+from pprint import pprint
 
 start_time = time.time()
 
@@ -81,18 +82,11 @@ def read_serial(ser, q):
 
 #converting bytes on serial to dic
 def get_dic(data):
-    data = data.hex()
     dic = []
-    i = 0
-    el_n = ''
     for el in data:
-        if i%2 != 0:
-            el_n = el_n + str(el)
-            dic.append(el_n)
-            el_n = ''
-        else:
-            el_n = el_n + str(el)
-        i=i+1
+        nel = hex(el)[2:4]
+        nel = '0'+nel if len(nel) == 1 else nel
+        dic.append(nel)
     return dic
 
 
@@ -114,6 +108,7 @@ def get_checksum(packet):
 
 #checking sended
 def checking_sended(send, rev):
+    print("!!! rev = ", rev)
     while True:
         #print ('checkinng')
         check = get_dic(read_serial(ser, 'revise'))
@@ -132,6 +127,8 @@ def checking_sended(send, rev):
             if rev[j] != send[j]:
                 diff.extend([j])
             j += 1
+        
+        print ("!!! sum_check =", sum_check)
         
         if sum_check == 12: 
             if print_preinfo == 'yes': print (bcolors.OKGREEN + bcolors.BOLD + 'OK' + bcolors.ENDC)
@@ -192,6 +189,7 @@ def read_status(ser):
     while True:
         rx = get_dic(read_serial(ser, 'revise'))
         #sys.exit()
+        print (rx)
         if (rx[9] == '0a' or rx[9] == '2a' or rx[9] == '4a'):
             status = 'off'
             break
@@ -374,6 +372,13 @@ if len(sys.argv) == 2:
         #print (bcolors.OKBLUE + bcolors.BOLD + read_status(ser) + bcolors.ENDC)
         print (read_status(ser))
         sys.exit()
+    if sys.argv[1] == 'sniff':
+        i = 1
+        while i <= 12:
+            if i % 3 == 0: print ()
+            print ('       ' + ' '.join(get_dic(read_serial(ser, 'hex'))))
+            i += 1
+        #break
     if (sys.argv[1] == 'off' or sys.argv[1] == 'rhoff' or sys.argv[1] == 'rhon'):
            run_com(ser, [sys.argv[1], ' ', ' '])
            sys.exit()
