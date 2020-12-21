@@ -156,14 +156,14 @@ def read_status(ser):
         rx = get_dic(read_serial(ser, 'revise'))
         #sys.exit()
         print (rx)
-        if (rx[9] == '0a' or rx[9] == '2a' or rx[9] == '4a'):
+        if (rx[9] == '0a' or rx[9] == '2a' or rx[9] == '4a'   or rx[9] == '07' or rx[9] == '27' or rx[9] == '47'):
             status = 'off'
             break
         else:
             bypass = 'undefined'
-            if rx[9] == '8a': bypass = 'bypass: auto; '
-            if rx[9] == 'aa': bypass = 'bypass: on; '
-            if rx[9] == 'ca': bypass = 'bypass: off; '
+            if (rx[9] == '8a' or rx[9] == '87'): bypass = 'bypass: auto; '
+            if (rx[9] == 'aa' or rx[9] == 'a7'): bypass = 'bypass: on; '
+            if (rx[9] == 'ca' or rx[9] == 'c7'): bypass = 'bypass: off; '
             if (rx[13] == '00' or rx[13] == '20'):
                 if rx[10] == '0c': mode = 'mode: normal; speed: 1; '
                 if rx[10] == '12': mode = 'mode: normal; speed: 2; '
@@ -205,6 +205,10 @@ def run_com(ser, cm):
                 if rx[9] == '8a': rx[9] = '0a'
                 if rx[9] == 'aa': rx[9] = '2a'
                 if rx[9] == 'ca': rx[9] = '4a'
+
+                if rx[9] == '87': rx[9] = '07'
+                if rx[9] == 'a7': rx[9] = '27'
+                if rx[9] == 'c7': rx[9] = '47'
             elif (cm[0] == 'rhoff' and (rx[9] == '8a' or rx[9] == 'aa' or rx[9] == 'ca')):
                 print ('use rhoff')
                 rx[11] = '40'
@@ -212,24 +216,27 @@ def run_com(ser, cm):
                 print ('use rhon')
                 rx[11] = 'd0'
             else:
-                if cm[2] == 'auto': rx[9] = '8a'    #'bypass: auto; '
-                if cm[2] == 'on': rx[9] = 'aa'        #'bypass: on; '
-                if cm[2] == 'off': rx[9] = 'ca'        #'bypass: off; '
+                #if cm[2] == 'auto': rx[9] = '8a'        #'bypass: auto; '
+                #if cm[2] == 'on':   rx[9] = 'aa'        #'bypass: on; '
+                #if cm[2] == 'off':  rx[9] = 'ca'        #'bypass: off; '
+                if cm[2] == 'auto': rx[9] = '87'        #'bypass: auto; '
+                if cm[2] == 'on':   rx[9] = 'a7'        #'bypass: on; '
+                if cm[2] == 'off':  rx[9] = 'c7'        #'bypass: off; '
                 if (cm[0] == 'n' or cm[0] == 'ne' or cm[0] == 'ns'):
                     rx[13] = '20'
                     #rx[13] = '00'
-                    if (cm[0] == 'n' and cm[1] == '1'): rx[10] = '0c'        #'mode: normal; speed: 1; '
-                    if (cm[0] == 'n' and cm[1] == '2'): rx[10] = '12'        #'mode: normal; speed: 2; '
-                    if (cm[0] == 'n' and cm[1] == '3'): rx[10] = '21'        #'mode: normal; speed: 3; '
+                    if (cm[0] == 'n' and cm[1] == '1'): rx[10] = '0c'         #'mode: normal; speed: 1; '
+                    if (cm[0] == 'n' and cm[1] == '2'): rx[10] = '12'         #'mode: normal; speed: 2; '
+                    if (cm[0] == 'n' and cm[1] == '3'): rx[10] = '21'         #'mode: normal; speed: 3; '
                     if (cm[0] == 'ne' and cm[1] == '1'): rx[10] = '4a'        #'mode: normal exhaust; speed: 1; '
                     if (cm[0] == 'ne' and cm[1] == '3'): rx[10] = '51'        #'mode: normal exhaust; speed: 3; '
                     if (cm[0] == 'ns' and cm[1] == '1'): rx[10] = '94'        # 'mode: normal supply; speed: 1; '
                     if (cm[0] == 'ns' and cm[1] == '3'): rx[10] = 'a2'        #'mode: normal supply; speed: 3; '
                 if (cm[0] == 's' or cm[0] == 'se' or cm[0] == 'ss'):
                     rx[13] = '10'
-                    if (cm[0] == 's' and cm[1] == '1'): rx[10] = '0c'        #'mode: save; speed: 1; '
-                    if (cm[0] == 's' and cm[1] == '2'): rx[10] = '12'        #'mode: save; speed: 2; '
-                    if (cm[0] == 's' and cm[1] == '3'): rx[10] = '21'        #'mode: save; speed: 3; '
+                    if (cm[0] == 's' and cm[1] == '1'): rx[10] = '0c'         #'mode: save; speed: 1; '
+                    if (cm[0] == 's' and cm[1] == '2'): rx[10] = '12'         #'mode: save; speed: 2; '
+                    if (cm[0] == 's' and cm[1] == '3'): rx[10] = '21'         #'mode: save; speed: 3; '
                     if (cm[0] == 'se' and cm[1] == '1'): rx[10] = '4a'        #'mode: save exhaust; speed: 1; '
                     if (cm[0] == 'se' and cm[1] == '3'): rx[10] = '51'        #'mode: save exhaust; speed: 3; '
                     if (cm[0] == 'ss' and cm[1] == '1'): rx[10] = '94'        #'mode: save supply; speed: 1; '
