@@ -194,6 +194,7 @@ def read_status(ser):
             status = 'off'
             break
         else:
+            bypass = 'undefined'
             if rx[9] == '8a': bypass = 'bypass: auto; '
             if rx[9] == 'aa': bypass = 'bypass: on; '
             if rx[9] == 'ca': bypass = 'bypass: off; '
