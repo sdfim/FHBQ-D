@@ -216,12 +216,13 @@ def run_com(ser, cm):
                 print ('use rhon')
                 rx[11] = 'd0'
             else:
-                #if cm[2] == 'auto': rx[9] = '8a'        #'bypass: auto; '
-                #if cm[2] == 'on':   rx[9] = 'aa'        #'bypass: on; '
-                #if cm[2] == 'off':  rx[9] = 'ca'        #'bypass: off; '
-                if cm[2] == 'auto': rx[9] = '87'        #'bypass: auto; '
-                if cm[2] == 'on':   rx[9] = 'a7'        #'bypass: on; '
-                if cm[2] == 'off':  rx[9] = 'c7'        #'bypass: off; '
+                if (cm[2] == 'auto' and rx[9] == '0a'): rx[9] = '8a'        #'bypass: auto; '
+                if (cm[2] == 'on' and rx[9] == '2a'):   rx[9] = 'aa'        #'bypass: on; '
+                if (cm[2] == 'off' and rx[9] == '4a'):  rx[9] = 'ca'        #'bypass: off; '
+                if (cm[2] == 'auto' and rx[9] == '07'): rx[9] = '87'        #'bypass: auto; '
+                if (cm[2] == 'on' and rx[9] == '27'):   rx[9] = 'a7'        #'bypass: on; '
+                if (cm[2] == 'off' and rx[9] == '47'):  rx[9] = 'c7'        #'bypass: off; '
+
                 if (cm[0] == 'n' or cm[0] == 'ne' or cm[0] == 'ns'):
                     rx[13] = '20'
                     #rx[13] = '00'
