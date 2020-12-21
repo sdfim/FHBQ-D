@@ -13,23 +13,18 @@ s_port = '/dev/ttyUSB0'
 b_rate = 9600
 #open serial
 ser = serial.Serial(port=s_port,
-    #baudrate=b_rate,
-    #timeout=0.5
+    baudrate=b_rate,
+    timeout=0.5
 )
 
-#print_checking = 'no'
-print_checking = 'yes'
+print_checking =    'yes'
+print_preinfo =     'no'
+print_unit =        'no'
+print_past =        'no'
 
-print_preinfo = 'no'
-#print_preinfo = 'yes'
-
-print_unit = "no"
-#print_unit = "yes"
-
-print_past = 'no'
-#print_past = 'yes'
-
-max_send = 10
+max_send = 21
+max_time_sniff = 180        # s
+max_line_sniff = 2700       # 1line = 0.067s
 
 class bcolors:
     HEADER = '\033[95m'
@@ -41,22 +36,6 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
     
-#get to the right position
-def get_position(ser):
-    print ('get_position run')
-    while True:
-        data = ser.read()
-        if data == b'\x7e':
-            data = data + ser.read()       
-            if data == b'\x7e\x7e':
-                data = data + ser.read(2) 
-                #if (data == b'\x7e\x7e\xc0\xff'):
-                #if (data == b'\x7e\x7e\x00\xa0'):
-                if (data == b'\x7e\x7e\xa0\x00'):
-                    data = data + ser.read(13)
-                    data = ser.read(17)
-                    break
-
 #reading incoming bytes on serial
 def read_serial(ser, q):
     while True:
@@ -139,10 +118,6 @@ def checking_sended(send, rev):
         
         if print_checking == 'yes':
             print (bcolors.WARNING + '                                  bp sp      mode     ' + bcolors.ENDC)
-            #print ('sended:   ', send)
-            #print ('checking: ', check)
-            #print ('sended:   ' + ' '.join(send))
-            #print ('checking: ' + ' '.join(check))
             j = 2
             str_sended = ''
             str_checking = ''
@@ -172,15 +147,6 @@ def checking_sended(send, rev):
                 while i <= 3:
                     print ('       ' + ' '.join(get_dic(read_serial(ser, 'hex'))))
                     i += 1
-            
-            #sended = ' '.join(send)
-            #sended = sended.replace('7e 7e ','')
-            #sended = sended.replace('00 a0 ','00 a0 -> ')
-            #print ('sended:   ' + sended)
-            #checking = ' '.join(check)
-            #checking = checking.replace('7e 7e ','')
-            #checking = checking.replace('c0 ff ', 'c0 ff -> ')
-            #print ('checking: ' + checking)
         
         return ch_ret
 
@@ -283,8 +249,9 @@ def run_com(ser, cm):
         answer = ''
         i = 1
         while answer != 'OK':
-            get_dic(read_serial(ser, 'start'))
-            if (i%2 != 0  and i != 1): get_position(ser)
+            if ((i+2)%3 == 0):   read_serial(ser, 'start')
+            elif ((i+1)%3 == 0): read_serial(ser, 'unit')
+            elif (i%3 == 0):     read_serial(ser, 'revise')
             if i > max_send: 
                 break
             ser.write(codecs.decode(com, 'hex_codec'))
@@ -367,7 +334,7 @@ if len(sys.argv) == 2:
         sys.exit()
     if sys.argv[1] == 'sniff':
         i = 1
-        while i <= 12:
+        while i <= max_line_sniff or (time.time() - start_time) > max_time_sniff:
             if i % 3 == 0: print ()
             print ('       ' + ' '.join(get_dic(read_serial(ser, 'hex'))))
             i += 1
