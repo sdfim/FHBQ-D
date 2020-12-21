@@ -108,7 +108,7 @@ def get_checksum(packet):
 
 #checking sended
 def checking_sended(send, rev):
-    print("!!! rev = ", rev)
+    #print("!!! rev = ", rev)
     while True:
         #print ('checkinng')
         check = get_dic(read_serial(ser, 'revise'))
@@ -128,14 +128,14 @@ def checking_sended(send, rev):
                 diff.extend([j])
             j += 1
         
-        print ("!!! sum_check =", sum_check)
+        #print ("!!! sum_check =", sum_check)
         
         if sum_check == 12: 
             if print_preinfo == 'yes': print (bcolors.OKGREEN + bcolors.BOLD + 'OK' + bcolors.ENDC)
-            ch = 'OK'
+            ch_ret = 'OK'
         else: 
             if print_preinfo == 'yes': print (bcolors.FAIL +  "ERROR: something went wrong" + bcolors.ENDC)
-            ch = 'ERROR'
+            ch_ret = 'ERROR'
         
         if print_checking == 'yes':
             print (bcolors.WARNING + '                                  bp sp      mode     ' + bcolors.ENDC)
@@ -150,9 +150,9 @@ def checking_sended(send, rev):
             while j < 16:
                 if j in diff:
                     str_sended = str_sended + ' ' + bcolors.WARNING + bcolors.BOLD + str(send[j]) + bcolors.ENDC 
-                    if ch == 'OK':
+                    if ch_ret == 'OK':
                         str_checking = str_checking + ' ' + bcolors.OKGREEN + bcolors.BOLD + str(check[j]) + bcolors.ENDC
-                    if ch == 'ERROR':
+                    if ch_ret == 'ERROR':
                         str_checking = str_checking + ' ' + bcolors.FAIL + bcolors.BOLD + str(check[j]) + bcolors.ENDC 
                 elif j == 3:
                     str_sended = str_sended + ' ' + str(send[j]) + ' ->'
@@ -182,7 +182,7 @@ def checking_sended(send, rev):
             #checking = checking.replace('c0 ff ', 'c0 ff -> ')
             #print ('checking: ' + checking)
         
-        return ch
+        return ch_ret
 
 #reading current status for output
 def read_status(ser):
@@ -223,24 +223,15 @@ def run_com(ser, cm):
     while True:
         if cm[0] == 'h':
             com = cm[1]
-            com = HexToByte(com)
-            print (bcolors.WARNING + '                                  bp sp      mode     ' + bcolors.ENDC)
-            #print ('get:   ' + ' '.join(get_dic(read_serial(ser, 'revise'))))
-            print ('get:   ' + ' '.join(get_dic(read_serial(ser, 'start'))))
-            #print ('get:   ' + ' '.join(get_dic(read_serial(ser, 'unit'))))
-            print ('send:  ' + ' '.join(get_dic(com)))
-            ser.write(com)
-            print ('answear')
-            i=1
-            while i <= 12:
-                if i % 3 == 0: print
-                print ('       ' + ' '.join(get_dic(read_serial(ser, 'hex'))))
-                i += 1
-            break
+            rx = []
+            for i in range(len(com)//2):
+                if i == 0:
+                    rx.append(com[0] + com[1])
+                if i > 0: 
+                    rx.append(com[i*2] + com[i*2+1])
+
         else:
             rx = get_dic(read_serial(ser, 'revise'))
-            rev = []
-            rev.extend(rx)    
             rx[2] = '00'
             rx[3] = 'a0'
             if cm[0] == 'off': 
@@ -276,36 +267,37 @@ def run_com(ser, cm):
                     if (cm[0] == 'se' and cm[1] == '3'): rx[10] = '51'        #'mode: save exhaust; speed: 3; '
                     if (cm[0] == 'ss' and cm[1] == '1'): rx[10] = '94'        #'mode: save supply; speed: 1; '
                     if (cm[0] == 'ss' and cm[1] == '3'): rx[10] = 'a2'        #'mode: save supply; speed: 3; '
+        
+        rev = []
+        rev.extend(rx)
+        del rx[16]
+        del rev[16]
+        
+        packet = HexToByte(''.join(rx))
+        checksum = get_checksum(packet)
+        
+        com = ''.join(rx)+checksum
+        print ('com = ' + com)
+        
+        answer = ''
+        i = 1
+        while answer != 'OK':
+            get_dic(read_serial(ser, 'start'))
+            if (i%2 != 0  and i != 1): get_position(ser)
+            if i > max_send: 
+                break
+            ser.write(codecs.decode(com, 'hex_codec'))
+            answer = checking_sended(rx, rev)
+            i += 1
+                    
+        if print_checking == 'yes': 
+            print (str(i-1) + ' attempts of send '+ " %s seconds  " % (time.time() - start_time))
             
-            del rx[16]
-            del rev[16]
-            packet = HexToByte(''.join(rx))
-            
-            checksum = get_checksum(packet)
-           
-            com = ''.join(rx)+checksum
-            com_print = com
-            
-            answer = ''
-            i = 1
-            while answer != "OK":
-                get_dic(read_serial(ser, 'start'))
-                #print ('run command ' + com_print)
-                if (i%2 != 0  and i != 1): get_position(ser)
-                if i > max_send: break
-                ser.write(codecs.decode(com, 'hex_codec'))
-                answer = checking_sended(rx, rev)
-                i += 1
-                        
-            if print_checking == 'yes': 
-                print (str(i-1) + ' attempts of send '+ " %s seconds  " % (time.time() - start_time))
-                
-            break
+        break
         
     if print_preinfo == 'yes': print (bcolors.WARNING + 'current status: ' + bcolors.ENDC + bcolors.OKBLUE + bcolors.BOLD + read_status(ser) + bcolors.ENDC)
-    if cm[0] != 'h':
-        if answer != "OK": print ('ERROR')
-        if answer == "OK": print ('DONE')
+    if answer != "OK": print ('ERROR')
+    if answer == "OK": print ('DONE')
     sys.exit()
     
 
@@ -388,9 +380,8 @@ if len(sys.argv) == 2:
         sys.exit()
 elif len(sys.argv) == 3:
     if sys.argv[1] == 'h':
-        if len(sys.argv[2]) == 34:
-            cm = [sys.argv[1], sys.argv[2]]
-            run_com(ser, cm)
+        cm = [sys.argv[1], sys.argv[2]]
+        run_com(ser, cm)
 elif len(sys.argv) == 4:
     cm = [sys.argv[1], sys.argv[2], sys.argv[3]]
     if ''.join(cm) in com_valid:
