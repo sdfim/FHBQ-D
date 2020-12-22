@@ -24,7 +24,7 @@ PRINT_MASTER    = False
 PRINT_PAST      = False
 # return status const
 # it's test read data
-STATUS_READ_ERROR = True
+STATUS_READ_ERROR = False
 # write serial const
 MAX_SEND        = 21
 # sniff const
@@ -366,7 +366,6 @@ def main():
                 if i % 3 == 0: print ()
                 print (' '.join(get_dic(read_serial(ser, 'hex'))))
                 i += 1
-            #break
         if (sys.argv[1] == 'off' or sys.argv[1] == 'rhoff' or sys.argv[1] == 'rhon'):
             run_com(ser, [sys.argv[1], ' ', ' '])
             sys.exit()
@@ -376,17 +375,21 @@ def main():
             sys.exit()
     elif len(sys.argv) == 3:
         if sys.argv[1] == 'h':
-            cm = [sys.argv[1], sys.argv[2]]
-            run_com(ser, cm)
+            if len(sys.argv[2]) == 34: 
+                cm = [sys.argv[1], sys.argv[2]]
+                run_com(ser, cm)
+            else:
+                print (bcolors.FAIL + "ERROR: Your command is not valid" + bcolors.ENDC)
+                sys.exit()
     elif len(sys.argv) == 4:
         cm = [sys.argv[1], sys.argv[2], sys.argv[3]]
         if ''.join(cm) in lists.com_valid:
             run_com(ser, cm)
         else:
-            print (bcolors.FAIL + "ERROR: Your team is not valid, see help" + bcolors.ENDC)
+            print (bcolors.FAIL + "ERROR: Your command is not valid, see help" + bcolors.ENDC)
             sys.exit()
     else:
-        print (bcolors.FAIL + "ERROR: Your team is not valid, see help" + bcolors.ENDC)
+        print (bcolors.FAIL + "ERROR: Your command is not valid, see help" + bcolors.ENDC)
         sys.exit()
 
 main()
