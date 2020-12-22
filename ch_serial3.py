@@ -226,7 +226,7 @@ def read_status(ser):
                 err = 'error: need cleaning;'
             else: 
                 err = 'error: ' + str(rx[14]) + '; '
-            # temperatutre = HexToDec / 10
+            # temperature = HexToDec / 10
             tpt = 'tempt: ' + str(int(rx[15], 16)/10) + '; '     
             status = status + err + tpt
             if rx[16] == 'fc':
