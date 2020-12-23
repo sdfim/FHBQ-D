@@ -16,6 +16,8 @@ SRL = serial.Serial(
     baudrate=b_rate,
     timeout=0.5
 )
+
+TRY = False
 # print const
 PRINT_CHECK     = True
 PRINT_PREINFO   = False
@@ -328,9 +330,11 @@ def run_com(cm):
         answer = ''
         i = 1
         while answer != 'OK':
-            if   ((i+2)%3 == 0): tlg = 'slave'
-            elif ((i+1)%3 == 0): tlg = 'master'
-            elif (i%3 == 0):     tlg = 'revise'
+            if TRY:
+                if   ((i+2)%3 == 0): tlg = 'slave'
+                elif ((i+1)%3 == 0): tlg = 'master'
+                elif (i%3 == 0):     tlg = 'revise'
+            else: tlg = 'slave'
             read_serial(tlg)
             if PRINT_CHECK: 
                 print ()
@@ -341,12 +345,11 @@ def run_com(cm):
             answer = checking_sended(rx)
             i += 1
                     
-        if PRINT_CHECK: 
-            print (str(i-1) + ' attempts of send '+ " %s seconds  " % (time.time() - start_time))
+        if PRINT_CHECK: print (str(i-1) + ' attempts of send '+ " %s seconds  " % (time.time() - start_time))
             
         break
         
-    if PRINT_PREINFO: print (bcolors.WARNING + 'current status: ' + bcolors.ENDC + bcolors.OKBLUE + bcolors.BOLD + read_status() + bcolors.ENDC)
+    if PRINT_PREINFO:  print (bcolors.WARNING + 'current status: ' + bcolors.ENDC + bcolors.OKBLUE + bcolors.BOLD + read_status() + bcolors.ENDC)
     if answer != "OK": print ('ERROR')
     if answer == "OK": print ('DONE')
     sys.exit()
