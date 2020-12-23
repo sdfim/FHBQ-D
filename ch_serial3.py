@@ -23,7 +23,7 @@ PRINT_MASTER    = False
 PRINT_PAST      = False
 # return status const
 # it's test read data
-STATUS_READ_ERROR = False
+STATUS_READ_ERROR = True
 # write serial const
 MAX_SEND        = 21
 # sniff const
@@ -118,7 +118,7 @@ def read_serial(ser, q):
                         data = data + ser.read(13)
                         return data
                     if     (q == 'master' and data == b'\x7e\x7e\xa0\x00'):
-                        data = data + ser.read(13)
+                        data = data + ser.read(12)
                         return data
                 
 
@@ -167,9 +167,8 @@ def checking_sended(send):
                 diff.append(j)
             j += 1
         
-        if PRINT_CHECK: 
-            print ("sum_check_byte = ", sum_check_byte)
         if PRINT_PREINFO:
+            print ("sum_check_byte = ", sum_check_byte)
             print ("diff  = ", diff)
             print ("check = ", check)
             print ("send  = ", send)
@@ -220,17 +219,12 @@ def read_status(ser):
     status = ''
     
     if STATUS_READ_ERROR:
-        while True:
-            rx = get_dic(read_serial(ser, 'master'))
-            if rx[14] == '8f': 
-                err = 'error: need cleaning;'
-            else: 
-                err = 'error: ' + str(rx[14]) + '; '
-            # temperature = HexToDec / 10
-            tpt = 'tempt: ' + str(int(rx[15], 16)/10) + '; '     
-            status = status + err + tpt
-            if rx[16] == 'fc':
-                break
+        rx = get_dic(read_serial(ser, 'master'))
+        if rx[14] == '8f': 
+            err = 'error: need cleaning;'
+        else: 
+            err = 'error: ' + str(rx[14]) + '; '
+        status = status + err
     
     while True:
         rx = get_dic(read_serial(ser, 'revise'))
@@ -334,9 +328,13 @@ def run_com(ser, cm):
         answer = ''
         i = 1
         while answer != 'OK':
-            if ((i+2)%3 == 0):   read_serial(ser, 'slave')
-            elif ((i+1)%3 == 0): read_serial(ser, 'master')
-            elif (i%3 == 0):     read_serial(ser, 'revise')
+            if   ((i+2)%3 == 0): tlg = 'slave'
+            elif ((i+1)%3 == 0): tlg = 'master'
+            elif (i%3 == 0):     tlg = 'revise'
+            read_serial(ser, tlg)
+            if PRINT_CHECK: 
+                print ()
+                print ('after of = ' + tlg)
             if i > MAX_SEND: 
                 break
             ser.write(codecs.decode(com, 'hex_codec'))
@@ -359,11 +357,26 @@ def main():
             #print (bcolors.OKBLUE + bcolors.BOLD + read_status(ser) + bcolors.ENDC)
             print (read_status(ser))
             sys.exit()
+        if sys.argv[1] == 'sniff_b':
+            i = 1
+            st = time.time() 
+            while i <= MAX_LINE_SNIFF or (time.time() - start_time) > MAX_TIME_SNIFF:
+                if i % 3 == 0: 
+                    print (time.time() - st)
+                    st = time.time() 
+                    print ()
+                print (' '.join(get_dic(read_serial(ser, 'hex'))))
+                i += 1
         if sys.argv[1] == 'sniff':
             i = 1
+            st = time.time() 
             while i <= MAX_LINE_SNIFF or (time.time() - start_time) > MAX_TIME_SNIFF:
-                if i % 3 == 0: print ()
-                print (' '.join(get_dic(read_serial(ser, 'hex'))))
+                print (' '.join(get_dic(read_serial(ser, 'slave'))))
+                print (' '.join(get_dic(read_serial(ser, 'master'))))
+                print (' '.join(get_dic(read_serial(ser, 'revise'))))
+                print (time.time() - st)
+                st = time.time() 
+                print ()
                 i += 1
         if (sys.argv[1] == 'off' or sys.argv[1] == 'rhoff' or sys.argv[1] == 'rhon'):
             run_com(ser, [sys.argv[1], ' ', ' '])
