@@ -11,7 +11,7 @@ start_time = time.time()
 s_port = '/dev/ttyUSB0'
 b_rate = 9600
 #open serial
-ser = serial.Serial(
+SRL = serial.Serial(
     port=s_port,
     baudrate=b_rate,
     timeout=0.5
@@ -100,25 +100,25 @@ class lists:
     "ss1auto", "ss3auto", "ss1on", "ss3on", "ss1off", "ss3off"]
 
 #reading incoming bytes on serial
-def read_serial(ser, q):
+def read_serial(q):
     while True:
-        data = ser.read()
+        data = SRL.read()
         if data == b'\x7e':
-            data = data + ser.read()       
+            data = data + SRL.read()       
             if data == b'\x7e\x7e':
                 if     q == 'hex':
-                    data = data + ser.read(15)
+                    data = data + SRL.read(15)
                     return data
                 else:
-                    data = data + ser.read(2) 
+                    data = data + SRL.read(2) 
                     if     (q == 'revise' and data == b'\x7e\x7e\xc0\xff'):
-                        data = data + ser.read(13)
+                        data = data + SRL.read(13)
                         return data
                     if     (q == 'slave' and data == b'\x7e\x7e\x00\xa0'):
-                        data = data + ser.read(13)
+                        data = data + SRL.read(13)
                         return data
                     if     (q == 'master' and data == b'\x7e\x7e\xa0\x00'):
-                        data = data + ser.read(12)
+                        data = data + SRL.read(12)
                         return data
                 
 
@@ -150,11 +150,11 @@ def get_checksum(packet):
 # checking sended
 def checking_sended(send):
     while True:
-        check = get_dic(read_serial(ser, 'revise'))
+        check = get_dic(read_serial('revise'))
         del check[16]
         
         if PRINT_MASTER: 
-            master = get_dic(read_serial(ser, 'master'))
+            master = get_dic(read_serial('master'))
             #del master[16]
             
         j = 4
@@ -209,17 +209,17 @@ def checking_sended(send):
             if PRINT_PAST:
                 i=1
                 while i <= 3:
-                    print ('       ' + ' '.join(get_dic(read_serial(ser, 'hex'))))
+                    print ('       ' + ' '.join(get_dic(read_serial('hex'))))
                     i += 1
         
         return ch_ret
 
 #reading current status for output
-def read_status(ser):
+def read_status():
     status = ''
     
     if STATUS_READ_ERROR:
-        rx = get_dic(read_serial(ser, 'master'))
+        rx = get_dic(read_serial('master'))
         if rx[14] == '8f': 
             err = 'error: need cleaning;'
         else: 
@@ -227,7 +227,7 @@ def read_status(ser):
         status = status + err
     
     while True:
-        rx = get_dic(read_serial(ser, 'revise'))
+        rx = get_dic(read_serial('revise'))
 
         if (rx[9] == '0a' or rx[9] == '2a' or rx[9] == '4a'   or rx[9] == '07' or rx[9] == '27' or rx[9] == '47'):
             status = 'off'
@@ -260,7 +260,7 @@ def read_status(ser):
     return status
 
 #runing command
-def run_com(ser, cm):
+def run_com(cm):
     while True:
         if cm[0] == 'h':
             com = cm[1]
@@ -272,7 +272,7 @@ def run_com(ser, cm):
                     rx.append(com[i*2] + com[i*2+1])
 
         else:
-            rx = get_dic(read_serial(ser, 'revise'))
+            rx = get_dic(read_serial('revise'))
             rx[2] = '00'
             rx[3] = 'a0'
             if cm[0] == 'off': 
@@ -331,13 +331,13 @@ def run_com(ser, cm):
             if   ((i+2)%3 == 0): tlg = 'slave'
             elif ((i+1)%3 == 0): tlg = 'master'
             elif (i%3 == 0):     tlg = 'revise'
-            read_serial(ser, tlg)
+            read_serial(tlg)
             if PRINT_CHECK: 
                 print ()
                 print ('after of = ' + tlg)
             if i > MAX_SEND: 
                 break
-            ser.write(codecs.decode(com, 'hex_codec'))
+            SRL.write(codecs.decode(com, 'hex_codec'))
             answer = checking_sended(rx)
             i += 1
                     
@@ -346,7 +346,7 @@ def run_com(ser, cm):
             
         break
         
-    if PRINT_PREINFO: print (bcolors.WARNING + 'current status: ' + bcolors.ENDC + bcolors.OKBLUE + bcolors.BOLD + read_status(ser) + bcolors.ENDC)
+    if PRINT_PREINFO: print (bcolors.WARNING + 'current status: ' + bcolors.ENDC + bcolors.OKBLUE + bcolors.BOLD + read_status() + bcolors.ENDC)
     if answer != "OK": print ('ERROR')
     if answer == "OK": print ('DONE')
     sys.exit()
@@ -354,8 +354,8 @@ def run_com(ser, cm):
 def main():
     if len(sys.argv) == 2:
         if sys.argv[1] == 'status':
-            #print (bcolors.OKBLUE + bcolors.BOLD + read_status(ser) + bcolors.ENDC)
-            print (read_status(ser))
+            #print (bcolors.OKBLUE + bcolors.BOLD + read_status() + bcolors.ENDC)
+            print (read_status())
             sys.exit()
         if sys.argv[1] == 'sniff_b':
             i = 1
@@ -365,21 +365,21 @@ def main():
                     print (time.time() - st)
                     st = time.time() 
                     print ()
-                print (' '.join(get_dic(read_serial(ser, 'hex'))))
+                print (' '.join(get_dic(read_serial('hex'))))
                 i += 1
         if sys.argv[1] == 'sniff':
             i = 1
             st = time.time() 
             while i <= MAX_LINE_SNIFF or (time.time() - start_time) > MAX_TIME_SNIFF:
-                print (' '.join(get_dic(read_serial(ser, 'slave'))))
-                print (' '.join(get_dic(read_serial(ser, 'master'))))
-                print (' '.join(get_dic(read_serial(ser, 'revise'))))
+                print (' '.join(get_dic(read_serial('slave'))))
+                print (' '.join(get_dic(read_serial('master'))))
+                print (' '.join(get_dic(read_serial('revise'))))
                 print (time.time() - st)
                 st = time.time() 
                 print ()
                 i += 1
         if (sys.argv[1] == 'off' or sys.argv[1] == 'rhoff' or sys.argv[1] == 'rhon'):
-            run_com(ser, [sys.argv[1], ' ', ' '])
+            run_com([sys.argv[1], ' ', ' '])
             sys.exit()
         if sys.argv[1] == 'help':
             print ('posiple/valid command: ')
@@ -389,14 +389,14 @@ def main():
         if sys.argv[1] == 'h':
             if len(sys.argv[2]) == 34: 
                 cm = [sys.argv[1], sys.argv[2]]
-                run_com(ser, cm)
+                run_com(cm)
             else:
                 print (bcolors.FAIL + "ERROR: Your command is not valid" + bcolors.ENDC)
                 sys.exit()
     elif len(sys.argv) == 4:
         cm = [sys.argv[1], sys.argv[2], sys.argv[3]]
         if ''.join(cm) in lists.com_valid:
-            run_com(ser, cm)
+            run_com(cm)
         else:
             print (bcolors.FAIL + "ERROR: Your command is not valid, see help" + bcolors.ENDC)
             sys.exit()
