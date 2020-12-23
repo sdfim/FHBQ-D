@@ -336,7 +336,7 @@ def run_com(cm):
                 elif (i%3 == 0):     tlg = 'revise'
             else: tlg = 'slave'
             read_serial(tlg)
-            if PRINT_CHECK: 
+            if (PRINT_CHECK and TRY): 
                 print ()
                 print ('after of = ' + tlg)
             if i > MAX_SEND: 
