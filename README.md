@@ -63,25 +63,50 @@ To turn off the HRV:
 python3 recuperator_cli.py off
 ```
 
-### 4) Set operation mode, speed, and bypass
+### 4) Set operating mode (three-part command)
 
-The script supports various combinations of operation modes, speeds, and bypass settings. For example:
-
-- Normal mode, speed 1, bypass auto:
+The most common command format is a three-part structure:
 
 ```
-python3 recuperator_cli.py n 1 auto
+<mode> <speed> <bypass>
 ```
 
-- Save mode, speed 3, bypass off:
+- **Part: Mode** — operation mode type  
+  - Examples: `n` (Normal), `s` (Save / Eco), `ne` (Normal Exhaust), `ss` (Save Supply), etc.
+- **Part: Speed** — fan speed level  
+  - Values: `1`, `2`, `3`
+- **Part: Bypass** — bypass operation  
+  - Values: `auto`, `on`, `off`
+
+#### Example Commands
+
+Example 1 — Set Normal mode, speed 3, bypass automatic:
 
 ```
-python3 recuperator_cli.py s 3 off
+python3 recuperator_cli.py n 3 auto
 ```
 
-Refer to the `help` command for all valid combinations.
+Example 2 — Set Save mode, speed 1, bypass ON:
 
-### 5) Send raw hex commands
+```
+python3 recuperator_cli.py s 1 on
+```
+
+### 5) Special one-word commands
+
+- `off` — completely turn the recuperator unit off
+- `rhon` — enable the relative humidity control function
+- `rhoff` — disable the relative humidity control function
+
+#### Example Commands
+
+Example — Turn off the recuperator:
+
+```
+python3 recuperator_cli.py off
+```
+
+### 6) Send raw hex commands
 
 For advanced users, raw hex commands can be sent directly to the HRV:
 
@@ -91,7 +116,7 @@ python3 recuperator_cli.py h <hex_string>
 
 The `<hex_string>` must be exactly 34 characters long.
 
-### 6) Use as a Python module
+### 7) Use as a Python module
 
 The script can also be used as a Python module by importing its functions into your own Python code. For example:
 
@@ -112,6 +137,14 @@ print(result)
 ```
 
 This allows you to integrate the HRV control functionality into larger Python applications.
+
+### Example Output (Silent Mode)
+
+When running commands in silent mode, the script outputs the current status of the HRV. For example:
+
+```
+mode: normal; speed: 3; bypass: auto;
+```
 
 ### Examples of CLI Commands and Responses
 
