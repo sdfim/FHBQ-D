@@ -170,6 +170,57 @@ pi@raspberrypi:~/FHBQ-D $ python3 recuperator_cli.py status
 mode: off; speed: 0; bypass: n/a;
 ```
 
+### 8) List of All Available Commands
+
+Below is the complete list of commands supported by the script:
+
+- `status` — view current status
+- `n 1 auto` — mode: normal; speed: 1; bypass: auto;
+- `n 2 auto` — mode: normal; speed: 2; bypass: auto;
+- `n 3 auto` — mode: normal; speed: 3; bypass: auto;
+- `n 1 on` — mode: normal; speed: 1; bypass: on;
+- `n 2 on` — mode: normal; speed: 2; bypass: on;
+- `n 3 on` — mode: normal; speed: 3; bypass: on;
+- `n 1 off` — mode: normal; speed: 1; bypass: off;
+- `n 2 off` — mode: normal; speed: 2; bypass: off;
+- `n 3 off` — mode: normal; speed: 3; bypass: off;
+- `ne 1 auto` — mode: normal exhaust; speed: 1; bypass: auto;
+- `ne 3 auto` — mode: normal exhaust; speed: 3; bypass: auto;
+- `ne 1 on` — mode: normal exhaust; speed: 1; bypass: on;
+- `ne 3 on` — mode: normal exhaust; speed: 3; bypass: on;
+- `ne 1 off` — mode: normal exhaust; speed: 1; bypass: off;
+- `ne 3 off` — mode: normal exhaust; speed: 3; bypass: off;
+- `ns 1 auto` — mode: normal supply; speed: 1; bypass: auto;
+- `ns 3 auto` — mode: normal supply; speed: 3; bypass: auto;
+- `ns 1 on` — mode: normal supply; speed: 1; bypass: on;
+- `ns 3 on` — mode: normal supply; speed: 3; bypass: on;
+- `ns 1 off` — mode: normal supply; speed: 1; bypass: off;
+- `ns 3 off` — mode: normal supply; speed: 3; bypass: off;
+- `s 1 auto` — mode: save; speed: 1; bypass: auto;
+- `s 2 auto` — mode: save; speed: 2; bypass: auto;
+- `s 3 auto` — mode: save; speed: 3; bypass: auto;
+- `s 1 on` — mode: save; speed: 1; bypass: on;
+- `s 2 on` — mode: save; speed: 2; bypass: on;
+- `s 3 on` — mode: save; speed: 3; bypass: on;
+- `s 1 off` — mode: save; speed: 1; bypass: off;
+- `s 2 off` — mode: save; speed: 2; bypass: off;
+- `s 3 off` — mode: save; speed: 3; bypass: off;
+- `se 1 auto` — mode: save exhaust; speed: 1; bypass: auto;
+- `se 3 auto` — mode: save exhaust; speed: 3; bypass: auto;
+- `se 1 on` — mode: save exhaust; speed: 1; bypass: on;
+- `se 3 on` — mode: save exhaust; speed: 3; bypass: on;
+- `se 1 off` — mode: save exhaust; speed: 1; bypass: off;
+- `se 3 off` — mode: save exhaust; speed: 3; bypass: off;
+- `ss 1 auto` — mode: save supply; speed: 1; bypass: auto;
+- `ss 3 auto` — mode: save supply; speed: 3; bypass: auto;
+- `ss 1 on` — mode: save supply; speed: 1; bypass: on;
+- `ss 3 on` — mode: save supply; speed: 3; bypass: on;
+- `ss 1 off` — mode: save supply; speed: 1; bypass: off;
+- `ss 3 off` — mode: save supply; speed: 3; bypass: off;
+- `off` — turn off recuperator
+- `rhoff` — turn off the relative humidity display
+- `rhon` — turn on the relative humidity
+
 ### Notes
 
 - The script includes retry logic for sending commands and verifying acknowledgments from the HRV.
